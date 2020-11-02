@@ -82,3 +82,79 @@ def legendary_album_splitter(input_dict):
     output_dict = input_dict.copy()
 
     return output_dict
+
+def song_scraper(dict_, names, limit=5, verbose=True):
+    import time
+    import requests
+    import numpy as np
+    from bs4 import BeautifulSoup
+    
+    ## Create list to pull random intervals from + counter
+    time_splits = np.linspace(10.129, 300.783, num=40)
+    counter = 0
+    skips = 0
+    
+    ## Setting limit to requests
+    for title in names:
+        ## Enforcing limit
+        if counter >= limit:
+            break
+            
+        ## Try: Join strings to create full song URL + Q.C.
+        ## Except: Q.C. for non-str elements (already scraped)
+        try:
+            end_url = dict_[title]
+            start_url = 'https://www.allthelyrics.com'
+            full_url = start_url + end_url
+            print(20*'--')
+            print(f'Song to be scraped: {title}')
+        except:
+            ## Optional Q.C. of skipped songs
+            if verbose:
+                print(20*'**')
+                print(f'Song already scraped: {title}')
+                print(type(end_url))
+                print(20*'**')
+            ## Counter for skipped songs
+            skips += 1
+            continue
+            
+        ## Generating soup
+        resp = requests.get(full_url)
+        if resp.status_code == 200:            
+            soup = BeautifulSoup(resp.text, 'html.parser')
+
+            ## Collect lyrics 'div' from song soup as a bs4 tag + store in song dict
+            song_lyrics = soup.findAll('div', attrs={'class': 'content-text-inner'}).pop()
+            dict_[title] = song_lyrics
+
+            ## Increase counter + random sampling for sleep time between requests
+            counter += 1
+            alarm = np.random.choice(time_splits)
+            rounding = np.random.choice(list(range(2,6)))
+            print(f'Sleeping {round(alarm, 2)} seconds...')
+            time.sleep(round(alarm, rounding))
+            print('Ding!')
+            print(20*'--')
+            
+        else:
+            print(f'Something wrong with link for {title}')
+            continue
+    
+    ## Q.C. for skipped songs
+    if not verbose:
+        print(f'Total number of songs skipped: {skips}')
+
+def song_scraping_stats(dict_):
+    
+    status_dict = {'tag': 0, 'string': 0}
+    
+    for key in dict_:
+        status = type(dict_[key])
+        
+        if status == str:
+            status_dict['string'] += 1
+        else:
+            status_dict['tag'] += 1
+
+    return status_dict
