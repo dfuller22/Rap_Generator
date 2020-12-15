@@ -1,4 +1,5 @@
 def album_aggregator(soup_obj):
+    ## Collects songs into dictionary based upon album titles
 
     import regex
 
@@ -49,6 +50,7 @@ def album_aggregator(soup_obj):
     return album_dict
 
 def legendary_album_splitter(input_dict):
+    ## Fixes error in legendary album representing 'other songs'
 
     ## Container for 'other songs' + index helper for 'for' loop
     other_holder = {}
@@ -84,6 +86,8 @@ def legendary_album_splitter(input_dict):
     return output_dict
 
 def song_scraper(dict_, names, limit=5, verbose=True):
+    ## Scrapes songs on a randomized time delay stored in a dict
+
     import time
     import requests
     import numpy as np
@@ -146,15 +150,212 @@ def song_scraper(dict_, names, limit=5, verbose=True):
         print(f'Total number of songs skipped: {skips}')
 
 def song_scraping_stats(dict_):
-    
+    ## Helps to determine how many songs need to be scraped
+
+    ## Result container
     status_dict = {'tag': 0, 'string': 0}
     
+    ## Iterate over dict + check if link (str)
     for key in dict_:
         status = type(dict_[key])
         
+        ## Count links else scraped lyrics (tag)
         if status == str:
             status_dict['string'] += 1
         else:
             status_dict['tag'] += 1
 
     return status_dict
+
+def lyric_header_checker(dict_, display_multi=True, sort=True):
+    ## Helps to locate 'who' is rapping via headers; used in filtering lyrics
+
+    import regex
+
+    ## Setting variable for matching + results container
+    nav_str_ = 'NavigableString'
+    tag_res = {}
+
+    ## Iterate over dict + store songs
+    for key in dict_:
+        song = dict_[key]
+
+        ## Iterate over BeautifulSoup elements
+        for lyric in song:
+            type_ = type(lyric)
+
+            ## Skipping elements w/o lyrics
+            if type_.__name__ == nav_str_:
+                continue
+
+            ## Locating headers over song sections
+            reg_res = regex.findall(r'\[.+\]', lyric.text)
+
+            ## Removing single headers
+            if len(reg_res) == 1:
+                item = reg_res.pop()
+
+                ## Adding to results per instance
+                try:
+                    tag_res[item] += 1
+                except:
+                    tag_res[item] = 1
+
+            ## Optional display of multiple speakers
+            elif len(reg_res) > 1:
+                if display_multi:
+                    print('--'*10)
+                    print(reg_res)
+
+            else:
+                continue
+    ## Sorting headers by highest number of occurrences
+    if sort:
+        fin_res = {k: v for k, v in sorted(tag_res.items(),
+                                           key=lambda item:item[1],
+                                           reverse=True)}
+
+        return fin_res
+
+def lyric_header_filter(dict_, to_drop, display_multi=True, sort=True):
+    ## Locates and stored lyrics depending on exluding list 'to_drop'; determined from 'header_checker'
+    import regex
+
+    ## Setting variable for matching + results container
+    nav_str_ = 'NavigableString'
+    tag_res = {}
+
+    ## Iterate over dict + store songs in variable + mid-results container
+    for key in dict_:
+        song = dict_[key]
+        lyric_holder = []
+
+        ## Iterate over BeautifulSoup elements
+        for lyric in song:
+            type_ = type(lyric)
+
+            ## Skipping elements w/o lyrics
+            if type_.__name__ == nav_str_:
+                continue
+
+            ## Locating headers over song sections
+            reg_res = regex.findall(r'\[.+\]', lyric.text)
+
+            ## Removing single headers
+            if len(reg_res) == 1:
+                item = reg_res.pop()
+                
+                ## Adding to results while excluding unwanted headers
+                if item in to_drop:
+                    pass
+                else:
+                    lyric_holder.append(lyric.text)
+
+            ## Optional display of multiple speakers
+            elif len(reg_res) > 1:
+                if display_multi:
+                    print('--'*10)
+                    print(reg_res)
+                
+                ## Iterate over headers in lyric section
+                for item in reg_res:
+                    ## Only adding sections not in 'to_drop'
+                    if item in to_drop:
+                        pass
+                    else:
+                        lyric_holder.append(lyric.text)                    
+
+            ## Adding lyrics w/o headers
+            else:
+                lyric_holder.append(lyric.text)
+
+        ## Storing all lyric sections in song by title        
+        tag_res[key] = lyric_holder
+    
+    ## Optional sorting by song title
+    if sort:
+        fin_res = {k: v for k, v in sorted(tag_res.items(),
+                                           key=lambda item:item[1],
+                                           reverse=True)}
+        
+        return fin_res
+
+def lyric_line_splitter(lyric_dict):
+    ## Splits blocks of lyrics into a list of str repre. song lines
+
+    ## Results container
+    result_dict = {}
+    
+    ## Iterate through each song
+    for song_title in lyric_dict:
+        ## Store copied lyrics in variable + set merge container
+        song = lyric_dict[song_title].copy()
+        song_merged = []
+        
+        ## Iterate through each grouping of lyrics + merge split results
+        for lyric in song:
+            song_merged.extend(lyric.splitlines())
+            
+        ## Store list of merged lyrics
+        result_dict[song_title] = song_merged
+        
+    return result_dict
+
+def clean_song(list_of_lyrics):
+    ## Helper function designed for 'song_cleaner'
+
+    import regex
+    
+    ## Results container
+    cleaned = []
+
+    ## Iterate of song lines in list
+    for line in list_of_lyrics:
+        
+        ## Remove punctuation + symbols, add to results
+        if not '[' in line and not ']' in line:
+            clean_line = regex.sub(r'[^\w\s]', '', line)
+            cleaned.append(clean_line.lower())
+            
+    return cleaned
+
+def song_cleaner(dict_of_songs):
+    ## Iterates over dictionary of lyrics, returns dict of lower/punct-less strs
+
+    ## Results container
+    results = {}
+    
+    ## Iterate over dictionary, create copy + store cleaned version
+    for song_title in dict_of_songs:
+        song_raw = dict_of_songs[song_title].copy()
+        results[song_title] = clean_song(song_raw)
+        
+    return results
+
+def tokenize_lyrics(list_of_lyrics):
+    ## Joins + tokenizes list of strings (lyrics)
+
+    from nltk import word_tokenize
+
+    ## Join list of strings by whitespace then tokenize via NLTK
+    lyrics_joined = ' '.join(list_of_lyrics)
+    lyrics_tokens = word_tokenize(lyrics_joined)
+    
+    return lyrics_tokens
+
+def lyric_tokenizer(dict_of_songs):
+    ## Uses 'tokenize_lyrics' to iterate over dictionary of lyrics
+
+    ## Results container
+    results = {}
+    
+    ## Iterate over songs + make a copy
+    for song_title in dict_of_songs:
+        lyrics_raw = dict_of_songs[song_title].copy()
+        ## Tokenize + store results
+        lyrics_tokens = tokenize_lyrics(lyrics_raw)
+        results[song_title] = lyrics_tokens
+        
+    return results
+
+def sdfa
