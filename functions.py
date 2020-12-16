@@ -358,4 +358,310 @@ def lyric_tokenizer(dict_of_songs):
         
     return results
 
-def sdfa
+def series_ratio(series, keep_df=False):
+    ## Returns a pandas series with values as a % of total; optional df keep
+
+    import pandas as pd
+
+    ## Store total for later use    
+    total = series.values.sum()
+
+    ## Set into DataFrame for manipulation + copy ratio series
+    res_df = pd.DataFrame(series)
+    res_df.columns = ['Values']
+    res_df['Ratio'] = res_df['Values'] / total
+    ratio_series = res_df['Ratio'].copy()
+    
+    ## Optional return selection
+    if keep_df:
+        return res_df
+    else:
+        return ratio_series
+
+def freqdist_plotter(tokens, premade_fd=False, n_common=None, h_plot=False, normalize_plot=False, show_ratio=False, figsize=(10,10)):
+    ## Helper function to plot token freqdists w/variety of options for display
+
+    import nltk
+    import pandas as pd
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+
+    ## Check for n_common + create FreqDist if necessary
+    if isinstance(n_common, int):
+        freqdist = pd.Series(dict(nltk.FreqDist(tokens).most_common(n_common)))
+    elif isinstance(n_common, type(None)):
+        freqdist = pd.Series(dict(nltk.FreqDist(tokens)))
+    elif premade_fd:
+        freqdist = pd.Series(tokens)
+    else:
+        return f"Wrong input {type(n_common)}, use 'int' or 'None'."
+        
+    ## Setting figure & ax for plots
+    fig, ax = plt.subplots(figsize=figsize)
+    
+    ## Check to normalize FreqDist values
+    if normalize_plot:
+        ## Noramlize FreqDist
+        percent_plot = series_ratio(freqdist)
+        
+        ## Cropping plot if selected for
+        if n_common:
+            percent_plot = percent_plot.sort_values(ascending=False).head(n_common)
+        else:
+            percent_plot = percent_plot.sort_values(ascending=False)
+
+        ## Setting plot to horizontal if selected for    
+        if h_plot:
+            bar_plot = sns.barplot(x=percent_plot.values, y=percent_plot.index, orient='h', ax=ax)
+        else:
+            bar_plot = sns.barplot(x=percent_plot.index, y=percent_plot.values, ax=ax)
+
+        ## Setting title    
+        plt.title('Normalized Frequency Distribution')
+
+    else:
+        ## Setting non-normalized plot to horizontal if selected for
+        if h_plot:
+            bar_plot = sns.barplot(x=freqdist.values, y=freqdist.index, orient='h', ax=ax)
+        else:
+            bar_plot = sns.barplot(x=freqdist.index, y=freqdist.values, ax=ax)
+
+        ## Setting title    
+        plt.title('Frequency Distribution')
+    
+    ## Rotate xticks on vertical plots only
+    if h_plot:
+        plt.show();
+    else:
+        plt.xticks(rotation=30)
+        plt.show();
+    
+    ## Check for info displays
+    if show_ratio:
+        
+        ## Try to display premade percent_plot series
+        try:
+            type(percent_plot)
+            print('**'*10)
+            print(f'Top {n_common} tokens usage rate (%):')
+            print('**'*10)
+            display(percent_plot)
+        ## Create percent_plot series if needed
+        except NameError:
+            ratios = series_ratio(freqdist)
+            
+            ## Crop ratio list if selected for
+            if n_common:
+                ratios_sorted = ratios.sort_values(ascending=False).head(n_common)
+            else:
+                ratios_sorted = ratios.sort_values(ascending=False)
+            ## Display info!
+            print('**'*10)
+            print(f'Top {n_common} tokens usage rate (%):')
+            print('**'*10)
+            display(ratios_sorted)
+
+def n_gram_creator(tokens, top_n=20, n=2, freq_filter=None, window_size=None, counts=False, show_freq=True, show_pmi=False, keep=None):
+    # Helper function creating [2-4]grams with a variety of options
+    
+    import nltk.collocations as colloc
+    from nltk import bigrams, trigrams
+    
+    ## Check if n-gram is supported
+    if n in [2,3,4]:
+        
+        ## Allowing for non-contiguous ngram creation
+        if isinstance(window_size, int):
+            window = window_size
+        else:
+            window = n
+        
+        ## Bigram setup
+        if n == 2:
+            word = 'Bi'
+            
+            if counts:
+                ngrams = bigrams(tokens)
+                return ngrams
+            else:
+                ngram_measures = colloc.BigramAssocMeasures()
+                ngram_finder = colloc.BigramCollocationFinder.from_words(tokens, window_size=window)
+
+        ## Trigram setup    
+        elif n == 3:
+            word = 'Tri'
+            
+            if counts:
+                ngrams = trigrams(tokens)
+                return ngrams
+            else:
+                ngram_measures = colloc.TrigramAssocMeasures()
+                ngram_finder = colloc.TrigramCollocationFinder.from_words(tokens, window_size=window)
+
+        ## Quadgram setup
+        elif n == 4:
+            word = 'Quad'
+            ngram_measures = colloc.QuadgramAssocMeasures()
+            ngram_finder = colloc.QuadgramCollocationFinder.from_words(tokens, window_size=window)       
+
+        ## Applying frequency filter to results if selected for    
+        if isinstance(freq_filter, int):
+            ngram_finder.apply_freq_filter(freq_filter)
+
+        ## Create ngram scores    
+        ngram_score = ngram_finder.score_ngrams(ngram_measures.raw_freq)
+        ngram_pmi_score = ngram_finder.score_ngrams(ngram_measures.pmi)
+        
+        ## Optional display
+        if show_freq:
+            print(f'Top {top_n} {word}-grams by frequency')
+            display(ngram_score[:top_n])
+        
+        ## Optional display
+        if show_pmi:
+            print(f'PMI score for {top_n} {word}-grams')
+            display(ngram_pmi_score[:top_n])
+
+        ## Optional return   
+        if keep == 'score':
+            return ngram_score
+        elif keep == 'pmi':
+            return ngram_pmi_score
+    
+    ## Messaging for non-supported ngrams
+    else:
+        return f"{n}-grams are not supported. Try 2, 3, or 4."
+
+def token_stat_generator(tokens, fd_plot=True, fd_n_common=20, fd_normalize=False, fd_show_ratio=False, ngram=False, n=2, ngram_top_n=20, ngram_freq_filter=None, ngram_window=None, ngram_count=False, ngram_pmi=False):
+    # Function that serves as one line implementation of FreqDist plotter/N-gram creator for display
+    
+    import pandas as pd
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    import nltk
+    
+    ## Enacting FreqDist plotter
+    if fd_plot:
+        freqdist_plotter(tokens, normalize_plot=fd_normalize, n_common=fd_n_common, show_ratio=fd_show_ratio)
+    
+    ## Enacting N-gram creator
+    if ngram:
+        n_gram_creator(tokens, top_n=ngram_top_n, n=n, freq_filter=ngram_freq_filter, window_size=ngram_window, counts=ngram_count, show_pmi=ngram_pmi)
+
+def n_gram_plot_prepper(ngrams, reverse_sort=True, type_='freqdist', keep='join'):
+    # Helper function that prepares ngrams to be used in 'freqdist_plotter'
+    
+    from nltk import FreqDist
+    
+    ## Creating FreqDist + sort values; join ngram tokens with '_'
+    if type_ == 'freqdist':
+        ngram_fd = FreqDist(ngrams)
+        ngram_sorted = {k:v for k,v in sorted(ngram_fd.items(), key=lambda item:item[1], reverse=reverse_sort)}
+        ngram_joined = {'_'.join(k):v for k,v in sorted(ngram_fd.items(), key=lambda item:item[1], reverse=reverse_sort)}
+    ## Sort + join ngram tokens (FreqDist not needed)
+    elif type_ == 'pmi':
+        ngram_sorted = {item[0]:item[1] for item in sorted(ngrams, key=lambda item:item[1], reverse=reverse_sort)}
+        ngram_joined = {'_'.join(k):v for k,v in sorted(ngrams, key=lambda item:item[1], reverse=reverse_sort)}
+    
+    ## Optional return for type of ngram
+    if keep == 'join':
+        return ngram_joined
+    elif keep == 'sort':
+        return ngram_sorted
+    else:
+        return f"Must set keep parameter to either 'join' or 'sort', not {keep}."
+
+def string_concat(list_of_strings, quick_check=False, qc_rate=25, qc_amount=25):
+    # Helper function that combines a list of strings into one string
+    
+    ## Results container + counter 
+    results = []
+    qc_countdown = 0
+    
+    ## Iterate over each string in list
+    for orig_string in list_of_strings:
+        
+        ## Adding next string in list to the end of combined result
+        ## Remove and reset results list
+        try:
+            new_string = results[0] + '\n' + orig_string.strip()
+            results.pop()
+            results.append(new_string)
+        ## Create starting point
+        except IndexError:
+            results.append(orig_string.strip())
+
+        ## Increment counter    
+        qc_countdown += 1
+        
+        ## Optional display
+        if quick_check and (qc_countdown == qc_rate):
+            print(f'Last {qc_amount} strings joined:')
+            display(results[-qc_amount:])
+            qc_countdown = 0 
+            
+    return results
+
+def dict_string_concat(dict_of_strings, quick_check=False, qc_rate=25, qc_amount=25):
+    # Helper function that applies 'string_concat' over a dictionary of lists
+
+    ## Midpoint container
+    mid_results = []
+    
+    ## Iterate over keys, create copy of list, then extend midpoint results
+    for key in dict_of_strings:
+        list_of_strings = dict_of_strings[key].copy()
+        mid_concat = string_concat(list_of_strings, quick_check=quick_check, qc_rate=qc_rate, qc_amount=qc_amount)
+        mid_results.extend(mid_concat)
+    
+    ## Execution display
+    print('***'*20)
+    print(f'{len(mid_results)} strings pulled from dictionary')
+    print('***'*20)
+    
+    ## Final merge of all songs
+    fin_results = string_concat(mid_results, quick_check=quick_check, qc_rate=qc_rate, qc_amount=qc_amount)
+    
+    return fin_results
+
+def song_stats(song):
+    # Helper function that creates a list of total and unique word in a string
+
+    ## Join the song into one string, then split by words
+    song_split = ' '.join(song).split()
+    
+    ## Gather song length + total unique words
+    num_words = len(song_split)
+    num_unique = len(set(song_split))
+    
+    return [num_words, num_unique]
+
+def song_stat_df_generator(dict_of_songs):
+    # Applies 'song_stats' over a dictionary of lists containing lyrics. Returns DataFrame
+    # of engineered stats for plotting
+
+    import pandas as pd
+    
+    ## Container for results
+    result_dict = {}
+    
+    ## Go through each song, collect + store stats
+    for key in dict_of_songs:
+        song = dict_of_songs[key].copy()
+        stats = song_stats(song)
+        result_dict[key] = stats
+    
+    ## Create dataframe with totals + unique words
+    result_df = pd.DataFrame.from_dict(result_dict, orient='index')
+    
+    ## Reset index to store title as column + set column names
+    result_df.reset_index(inplace=True)
+    result_df.columns = ['title', 'total_words', 'unique_words']
+    
+    ## Feature engineering using totals + unique words
+    result_df['unique_total_ratio'] = result_df['unique_words'] / result_df['total_words']
+    result_df['avg_total'] = result_df.aggregate('mean', axis=0)['total_words']
+    result_df['avg_unique'] = result_df.aggregate('mean', axis=0)['unique_words']
+    result_df['avg_unique_ratio'] = result_df.aggregate('mean', axis=0)['unique_total_ratio']
+    
+    return result_df
