@@ -665,3 +665,40 @@ def song_stat_df_generator(dict_of_songs):
     result_df['avg_unique_ratio'] = result_df.aggregate('mean', axis=0)['unique_total_ratio']
     
     return result_df
+
+class Timer():
+    
+    """Timer class designed to keep track of and save modeling runtimes. It
+    will automatically find your local timezone. Methods are .stop, .start,
+    .record, and .now"""
+    
+    def __init__(self, fmt="%m/%d/%Y - %I:%M %p", verbose=None):
+        import tzlocal
+        self.verbose = verbose
+        self.tz = tzlocal.get_localzone()
+        self.fmt = fmt
+        
+    def now(self):
+        import datetime as dt
+        return dt.datetime.now(self.tz)
+    
+    def start(self):
+        if self.verbose:
+            print(f'---- Timer started at: {self.now().strftime(self.fmt)} ----')
+        self.started = self.now()
+        
+    def stop(self):
+        print(f'---- Timer stopped at: {self.now().strftime(self.fmt)} ----')
+        self.stopped = self.now()
+        self.time_elasped = (self.stopped - self.started)
+        print(f'---- Time elasped: {self.time_elasped} ----')
+        
+    def record(self):
+        try:
+            self.lap = self.time_elasped
+            return self.lap
+        except:
+            return print('---- Timer has not been stopped yet... ----')
+        
+    def __repr__(self):
+        return f'---- Timer object: TZ = {self.tz} ----'
