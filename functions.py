@@ -702,3 +702,207 @@ class Timer():
         
     def __repr__(self):
         return f'---- Timer object: TZ = {self.tz} ----'
+
+class Censor():
+    
+    def __init__(self, lyrics):
+        self._lyrics = lyrics
+        self._targeted = None
+        self._token_set = None
+        self.__censored_words = ['ass', 'asses', 'fuck', 'fucked', 'fucks', 'fuckin',
+                        'fucking', 'motherfuck', 'motherfucker', 'motherfuckin',
+                        'motherfucking', 'bitch', 'bitches', 'cock', 'dick',
+                        'dicks', 'pussy', 'pussies', 'shit', 'shits', 'shitty',
+                        'faggot', 'fag', 'fags', 'nigga', 'niggas', 'nigger']
+        
+    def create_set(self, show=False):
+        ## Set creation + stat assignment
+        self._token_set = list(set(self._lyrics))
+        self.__token_num_total = len(self._lyrics)
+        self.__token_num_unique = len(set(self._token_set))
+        
+        ## Optional Q.C.
+        if show:
+            print(f'Total tokens: {self.__token_num_total:,}')
+            print(f'Total unique tokens: {self.__token_num_unique:,}')
+            
+    def find_targets(self, extra_targets=None):
+        ## Check if additional censors needed
+        if isinstance(extra_targets, list):
+            self.__censored_words.extend(extra_targets)
+        
+        ## Check for smaller version of lyrics
+        if self._token_set:
+            targets_within = []
+
+            ## Collecting only the words applicable to these lyrics
+            for word in self.__censored_words:
+                if word in self._token_set:
+                    targets_within.append(word)
+            
+            ## Assignment of lyric-specific curses
+            self._targeted = targets_within
+        
+        ## Kick out if not done yet
+        else:
+            print(10*'--', 'Error', 10*'--')
+            return 'Please use .create_set() first..'
+            
+    def count_targets(self, lyric_type='I', show=False):
+        results = {}
+        
+        ## Check for necessary info
+        if self._targeted == None:
+            print(10*'--', 'Error', 10*'--')
+            return 'Please use .find_targets() first..'
+        
+        ## Type of lyrics to count
+        if lyric_type == 'I':
+            lyrics2count = self._lyrics
+        elif lyric_type == 'A':
+            lyrics2count = self._altered_lyrics
+        elif lyric_type == 'C':
+            lyrics2count = self._cleaned_lyrics
+        elif lyric_type == 'M':
+            lyrics2count = self._muted_lyrics
+        else:
+            return "Please use 'I', 'A', 'C', or 'M' for 'lyric_type' parameter. See docstring for more info."
+        
+        ## Begin counting
+        for word in lyrics2count:
+            ## Pull curses and increment
+            if word in self._targeted:
+                try:
+                    results[word] += 1
+                except KeyError:
+                    results[word] = 1
+        
+        ## Sort + assign to attribute
+        self.__target_counts = {k:v for k,v in sorted(results.items(), key=lambda item:item[1], reverse=True)}
+        
+        ## Optional display
+        if show:
+            return self.__target_counts
+        
+    def alter_targets(self, replacements):
+        ## Set copy for manipulation
+        self._altered_lyrics = self._lyrics.copy()
+        
+        ## Check for necessary info + create dict to map values
+        try:
+            trgt2cnsrd = dict.fromkeys(self._targeted, None)
+        except NameError:
+            print(10*'--', 'Error', 10*'--')
+            return 'Please use .find_targets() first..'
+        
+        ## Check replacements match dictionary
+        assert len(trgt2cnsrd) == len(replacements), "Make sure 'replacement' list is equal in length to targeted words"
+        
+        ## Matching up dictionary to replacement list
+        for i, key in enumerate(trgt2cnsrd):
+            trgt2cnsrd[key] = replacements[i]
+            
+        ## Altering strings
+        ## Iter. over each target/replacement
+        for key, val in trgt2cnsrd.items():
+            ## Iter. over each lyric token
+            for i, token in enumerate(self._altered_lyrics):
+                ## Regex to sub token inplace + make_copy check
+                if key == token:
+                    self._altered_lyrics[i] = val
+        
+    def mute_targets(self, replacement='*'):
+        ## Set copy for manipulation
+        self._muted_lyrics = self._lyrics.copy()
+       
+        ## Iter. over each target word
+        for target in self._targeted:
+            ## Iter. over each lyric token
+            for i, token in enumerate(self._muted_lyrics):
+                ## Assigning replacement per target size
+                if target == token:
+                    if len(token) == 1:
+                        self._muted_lyrics[i] = replacement
+                    elif len(token) == 2:
+                        self._muted_lyrics[i] = token[0] + replacement
+                    elif len(token) == 3:
+                        token = token[0] + replacement*2
+                        self._muted_lyrics[i] = token
+                    elif len(token) >= 4:
+                        token = token[0] + replacement*(len(token)-2) + token[-1]
+                        self._muted_lyrics[i] = token
+                    else:
+                        print('Length of <=0!')
+        
+    def remove_targets(self):
+        ## Set copy for manipulation
+        self._cleaned_lyrics = self._lyrics.copy()
+        
+        ## Iter. over each target token
+        for target in self._targeted:
+            ## Iter. over each lyric token
+            for token in self._cleaned_lyrics:
+                ## Remove each match to avoid errors
+                if token == target:
+                    self._cleaned_lyrics.remove(target)
+        
+    def add_target(self, to_add, multi_add=False, show=False):
+        ## Iter. over each new target OR append .targeted
+        if multi_add:
+            for new_trgt in to_add:
+                if new_trgt in self._targeted:
+                    continue
+                else:
+                    self._targeted.append(new_trgt)
+        else:
+            if to_add in self._targeted:
+                return f"'{to_add}' already a target!"
+            else:
+                self._targeted.append(to_add)
+        
+        ## Optional display
+        if show:
+            return self._targeted
+
+    def get_lyrics(self, lyric_type='I'):
+        ## Type of lyrics to return
+        if lyric_type == 'I':
+            return self._lyrics
+        elif lyric_type == 'A':
+            return self._altered_lyrics
+        elif lyric_type == 'C':
+            return self._cleaned_lyrics
+        elif lyric_type == 'M':
+            return self._muted_lyrics
+        else:
+            return "Please use 'I', 'A', 'C', or 'M' for 'lyric_type' parameter. See docstring for more info."
+
+    def get_word_counts(self, lyric_type='I'):
+        ## Result container
+        results = {}
+        
+        ## Type of lyrics to count
+        if lyric_type == 'I':
+            lyrics2count = self._lyrics
+        elif lyric_type == 'A':
+            lyrics2count = self._altered_lyrics
+        elif lyric_type == 'C':
+            lyrics2count = self._cleaned_lyrics
+        elif lyric_type == 'M':
+            lyrics2count = self._muted_lyrics
+        else:
+            return "Please use 'I', 'A', 'C', or 'M' for 'lyric_type' parameter. See docstring for more info."
+
+        ## Begin counting
+        for word in lyrics2count:
+            ## Find words and increment
+                try:
+                    results[word] += 1
+                except KeyError:
+                    results[word] = 1
+        
+        ## Sort + assign to attribute
+        word_counts = {k:v for k,v in sorted(results.items(), key=lambda item:item[1], reverse=True)}
+        
+        ## Display
+        return word_counts
