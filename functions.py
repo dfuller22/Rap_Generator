@@ -666,6 +666,38 @@ def song_stat_df_generator(dict_of_songs):
     
     return result_df
 
+def generated_text_splitter(lyrics):
+    ## Results container
+    results = []
+
+    ## Iter. over each character join each non-spacing char.
+    for char in lyrics:
+        ## Spaces indicate where words end
+        if (char == ' ') | (char == '\n'):
+            results.append(word)
+            results.append(char)
+            del word ## Reset for next word
+        else:
+            ## Try/Except to handle resets
+            try:
+                word = word + char
+            except NameError:
+                word = char
+                
+    return results
+
+def generated_text_joiner(lyrics):
+
+    ## Iter. over each token
+    for token in lyrics:
+        ## Try/Except to handle first entry
+        try:
+            tokens_joined = tokens_joined + token
+        except NameError:
+            tokens_joined = token
+
+    return tokens_joined
+
 class Timer():
     
     """Timer class designed to keep track of and save modeling runtimes. It
@@ -709,8 +741,8 @@ class Censor():
         self._lyrics = lyrics
         self._targeted = None
         self._token_set = None
-        self.__censored_words = ['ass', 'asses', 'fuck', 'fucked', 'fucks', 'fuckin',
-                        'fucking', 'motherfuck', 'motherfucker', 'motherfuckin',
+        self.__censored_words = ['ass', 'asses', 'fuck', 'fucked', 'fucker', 'fucks', 'fuckin',
+                        'fucking', 'motherfuck', 'motherfucker', 'motherfuckin', 'ho', 'hoes',
                         'motherfucking', 'bitch', 'bitches', 'cock', 'dick',
                         'dicks', 'pussy', 'pussies', 'shit', 'shits', 'shitty',
                         'faggot', 'fag', 'fags', 'nigga', 'niggas', 'nigger']
@@ -820,7 +852,7 @@ class Censor():
             ## Iter. over each lyric token
             for i, token in enumerate(self._muted_lyrics):
                 ## Assigning replacement per target size
-                if target == token:
+                if (target == token) | (target in token):
                     if len(token) == 1:
                         self._muted_lyrics[i] = replacement
                     elif len(token) == 2:
@@ -843,7 +875,7 @@ class Censor():
             ## Iter. over each lyric token
             for token in self._cleaned_lyrics:
                 ## Remove each match to avoid errors
-                if token == target:
+                if (token == target) or (target in token):
                     self._cleaned_lyrics.remove(target)
         
     def add_target(self, to_add, multi_add=False, show=False):
@@ -864,6 +896,56 @@ class Censor():
         if show:
             return self._targeted
 
+    def str_splitter(self):
+        ## Results container
+        results = []
+
+        ## Iter. over each character join each non-spacing char.
+        for char in self._lyrics:
+            ## Spaces indicate where words end
+            if (char == ' ') | (char == '\n'):
+                results.append(word)
+                results.append(char)
+                del word ## Reset for next word
+            else:
+                ## Try/Except to handle resets
+                try:
+                    word = word + char
+                except NameError:
+                    word = char
+            
+        self._lyrics = results
+
+    def str_joiner(self, lyric_type='I'):
+        ## Type of lyrics to join
+        joinable = self.get_lyrics(lyric_type)
+
+        ## Iter. over each token
+        for token in joinable:
+            ## Try/Except to handle first entry
+            try:
+                tokens_joined = tokens_joined + token
+            except NameError:
+                tokens_joined = token
+
+        self._joined_lyrics = tokens_joined
+
+    def execute_censoring(self, add_targ=None):
+        ## Create set + find targeted words
+        self.create_set()
+        self.find_targets()
+
+        ## Check for additional targets to be muted
+        if isinstance(add_targ, str):
+            self.add_target(add_targ)
+        elif isinstance(add_targ, list):
+            self.add_target(add_targ, multi_add=True)
+        
+        ## Execute muting
+        self.mute_targets()
+
+    ######################################## GETTERS ########################################
+
     def get_lyrics(self, lyric_type='I'):
         ## Type of lyrics to return
         if lyric_type == 'I':
@@ -874,24 +956,17 @@ class Censor():
             return self._cleaned_lyrics
         elif lyric_type == 'M':
             return self._muted_lyrics
+        elif lyric_type == 'J':
+            return self._joined_lyrics
         else:
-            return "Please use 'I', 'A', 'C', or 'M' for 'lyric_type' parameter. See docstring for more info."
+            return "Please use 'I', 'A', 'C', 'J', or 'M' for 'lyric_type' parameter. See docstring for more info."
 
     def get_word_counts(self, lyric_type='I'):
         ## Result container
         results = {}
         
         ## Type of lyrics to count
-        if lyric_type == 'I':
-            lyrics2count = self._lyrics
-        elif lyric_type == 'A':
-            lyrics2count = self._altered_lyrics
-        elif lyric_type == 'C':
-            lyrics2count = self._cleaned_lyrics
-        elif lyric_type == 'M':
-            lyrics2count = self._muted_lyrics
-        else:
-            return "Please use 'I', 'A', 'C', or 'M' for 'lyric_type' parameter. See docstring for more info."
+        lyrics2count = self.get_lyrics(lyric_type)
 
         ## Begin counting
         for word in lyrics2count:
@@ -906,3 +981,53 @@ class Censor():
         
         ## Display
         return word_counts
+
+class TextGenerator():
+    
+    def __init__(self, model, char_ref, idx_ref):
+        self.__model = model
+        self.__char_ref = char_ref
+        self.__idx_ref = idx_ref
+        
+    def generate_text(self, start_string, num_chars=100, temp=1.0):
+        # https://www.tensorflow.org/tutorials/text/text_generation#the_prediction_loop
+        import tensorflow as tf
+
+        ## Low temperature results in more predictable text.
+        ## Higher temperature results in more surprising text.
+        temperature = temp
+
+        ## Number of characters to generate
+        num_generate = num_chars
+
+        ## Converting our start string to numbers (vectorizing)
+        input_eval = [self.__idx_ref[s] for s in start_string.lower()]
+        input_eval = tf.expand_dims(input_eval, 0)
+
+        ## Empty string to store our results
+        text_generated = []
+
+        ## Here batch size == 1
+        self.__model.reset_states()
+
+        for i in range(num_generate):
+            predictions = self.__model(input_eval)
+            ## Remove the batch dimension
+            predictions = tf.squeeze(predictions, 0)
+
+            ## Using a categorical distribution to predict the character returned by the model
+            predictions = predictions / temperature
+            predicted_id = tf.random.categorical(predictions, num_samples=1)[-1,0].numpy()
+
+            ## Pass the predicted character as the next input to the model
+            ## along with the previous hidden state
+            input_eval = tf.expand_dims([predicted_id], 0)
+
+            text_generated.append(self.__char_ref[predicted_id])
+
+        self._generated_text = (start_string + ''.join(text_generated))
+        
+    def get_generated_text(self):
+        return self._generated_text
+
+#### END
