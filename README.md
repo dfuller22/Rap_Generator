@@ -8,6 +8,8 @@ In recent years, with the popularity of songs classified as "[mumble rap](https:
 
 While learning about *recurrent neural networks* (RNNs)I came across a [video](https://www.youtube.com/watch?v=ZMudJXhsUpY) by Laurence Moroney explaining how AI can be used to generate poetry after training upon a corpus of Irish poems. This sparked an idea to try and do the same with modern rap lyrics. I specifically decided to choose this genre because of my familiarity with it and thinking that the songs may be more wordy since the artists often are not singing any melodies.
 
+To add a twist, I wanted to go about my data collection in an intentionally biased manner in this case so that the results may mimic the source material as much as possible. However, I will try to maintain some sort of randomness in the generated text, so overfitting wil be a big concern during training.
+
 ## Packages
 * requests==2.23.0
 * regex==2020.6.8
@@ -20,4 +22,14 @@ While learning about *recurrent neural networks* (RNNs)I came across a [video](h
 * nltk==3.4.5
 * beautifulsoup4==4.7.1
 * importlib-metadata==0.23
-* + custom functions (see functions.py in repository)
+* custom functions (see functions.py in repository)
+
+## Datatset Creation
+#### Gathering the Data
+In order to get all of the lyrics together as one package, I needed to scrape in two steps:
+1. Get the links to the songs themselves
+2. Get the songs via the links from Step 1
+
+Step 1 can be completed using the BeautifulSoup4 API and a for-loop. Step 2 required a custom function that scraped songs and stored them in a time-delayed manner, allowing me to avoid DDoS filters. In total I was able to 
+#### Prepping the Data
+adfasdfslk
