@@ -1,4 +1,4 @@
-# Rap_Generator
+# Rap Generator
 RNN for generating rap lyrics by Darius Fuller
  
 ## Background
@@ -30,6 +30,44 @@ In order to get all of the lyrics together as one package, I needed to scrape in
 1. Get the links to the songs themselves
 2. Get the songs via the links from Step 1
 
-Step 1 can be completed using the BeautifulSoup4 API and a for-loop. Step 2 required a custom function that scraped songs and stored them in a time-delayed manner, allowing me to avoid DDoS filters. In total I was able to 
+Step 1 can be completed using the BeautifulSoup4 API and a for-loop. Step 2 required a custom function that scraped songs and stored them in a time-delayed manner, allowing me to avoid DDoS filters. In total I was able to collect 180 songs to train the RNN with.
 #### Prepping the Data
-adfasdfslk
+Some of the songs I collected included other artists in the lyrics, so I found a way using BeautifulSoup4 to separate the lyrics within a song depending on who was speaking. This was in an effort to ensure that the *only* lyrics the RNN sees are directly from Tyga, although I did train another model using the full collection of lyrics. 
+
+Roughly speaking my process for the EDA was as follows:
+1. Separate out lyrics without any featured artists by song title using a for-loop
+2. Remove any non-Tyga lyrics via the headers using `lyric_header_checker()` and `lyric_header_filter()`
+3. Split the lyrics into a list of strings line by line according to the song structure using `lyric_line_splitter()`
+4. Remove punctuations, symbols, and lowercase all the lyrics using a regular expression within `song_cleaner()`
+5. Tokenize the lyrics using NLTK's `word_tokenize()`
+
+## EDA
+#### All Solo Songs
+asdfasdfas
+#### N-Grams
+qerqwetwe
+#### Stopwords Out
+aqeiruwq
+#### Statistics
+qpoeiru
+
+## Creating the RNN
+qoeiuroqiuerq
+#### Architecture
+rtoieurert
+#### Training Strategy
+poiuoie
+
+## Text Generation
+poiuoiuiopiuj
+#### Prep Work
+qoeiure
+#### Censorship
+eoirupoq
+
+## Results
+qeoriuqpoeiur
+#### Sreamlit App
+poieuporqwe
+#### Future Work
+asdfasdfd
