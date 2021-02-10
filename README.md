@@ -46,8 +46,22 @@ Roughly speaking my process for the EDA was as follows:
 I decided to investigate some of the songs individually to see if there could be anything of note to find. When looking at the frequency distribution for the song [Rack City](https://en.wikipedia.org/wiki/Rack_City), I was able to quantify how repetitive it was in a sense. The frequency distribution created from the lyrics showed that the three words primarily used within the chorus took up of ~35% of all words used despite representing ~2% of the total vocabulary in the song.
 
 <img src="./Images/Got_Raps_56_0_edited.png" alt="Rack City word use rate" style="height: 80%; width:80%;"/>
+
 #### All Solo Songs
-asdfasdfas
+Taking a similar approach to the individual songs, but over the entire set of solo songs, I was about to find out a few things about Tyga's tendencies.
+* He uses a word denoting the first person ("I" or "I'm") ~26% of the time
+* Otherwise, Tyga is talking directly to another ("you" is 4th most frequent word)
+* At a rate of ~3.5%, "don't" is his favorite contraction to use
+* The *B-word* is his favorite curse word, with a usage rate of ~2.9%
+
+Top 5 words by frequency:
+1. "I" -- ~10.2%
+2. "the" -- ~10.2%
+3. "a" -- ~7.6%
+4. "you" -- ~7.0%
+5. "it" -- ~6.7%
+
+By frequency, I am not able to tell much about the topic Tyga tends to discuss, just how he goes about it.
 #### N-Grams
 qerqwetwe
 #### Stopwords Out
