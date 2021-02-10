@@ -10,6 +10,8 @@ While learning about *recurrent neural networks* (RNNs)I came across a [video](h
 
 To add a twist, I wanted to go about my data collection in an intentionally biased manner in this case so that the results may mimic the source material as much as possible. However, I will try to maintain some sort of randomness in the generated text, so overfitting wil be a big concern during training.
 
+**DISCLAIMER:** *The Jupyter Notebook in this repository contains the explicit lyrics from the songs used to train this network. If this is an issue, please continue here. I apologize for the inconvenience.*
+
 ## Packages
 * requests==2.23.0
 * regex==2020.6.8
@@ -126,31 +128,53 @@ Here is the final architecture I used for my model:
     _________________________________________________________________
     Layer (type)                 Output Shape              Param #   
     =================================================================
-    embedding (Embedding)        (64, None, 256)           10496     
+    embedding (Embedding)        (64, None, 256)           10752     
     _________________________________________________________________
     gru (GRU)                    (64, None, 1024)          3938304   
     _________________________________________________________________
-    dense (Dense)                (64, None, 41)            42025     
+    dense (Dense)                (64, None, 42)            43050     
     =================================================================
-    Total params: 3,990,825
-    Trainable params: 3,990,825
+    Total params: 3,992,106
+    Trainable params: 3,992,106
     Non-trainable params: 0
     _________________________________________________________________
     
 
 #### Training Strategy
-poiuoie
+I wanted to be really careful about how long I trained the model so as to hopefully allow for some flexibility for the future and randomness in the current iteration's generated text. After the first 10 epochs, I stopped the training process to check what the output looks like given a simple phrase at multiple levels of complexity (referred to as *temperature* in the notebook). The current version trained for 35 epochs on all of songs, including those with featured artists, taking the scalar loss from ~3.7 to 0.48.
 
 ## Text Generation
-poiuoiuiopiuj
-#### Prep Work
-qoeiure
+Pre-Training prediction:
+* Input: 
+"or fake b"
+* Predictions: 
+"1jzptc 7to"
+* Ouput: 
+"or fake b1jzptc 7to"
+
+Post-Training prediction:
+```
+print('Prediction Temperature 1.0:\n') ## 1.0 is highest level of temperature
+print(generate_text(model_gen_fts, char_v_idx_fts, idx_v_char_fts, start_string='im like ', temp=1.0))
+```
+    Prediction Temperature 1.0:
+    
+    im like a drum
+    real n#### b###### know my back round
+    bring me oh oh hundreds hundreds the sound
+    world around
+
 #### Censorship
-eoirupoq
+Given the nature of the lyrics that the model trained upon, it is no surprise that is also generates curse words. Therefore, in order for me to feel comfortable deploying this model, I decided to make a custom class that will censor out words after they have been predicted. This will allow for the model to still learn from the context and meaning of the words without having to be vulgar itself.
 
 ## Results
-qeoriuqpoeiur
+Overall, I am satisfied with the results. I was able to create a model that can mimick a rapper in a relative sense. Having ran numerous generations using this model, it is clear to me that the style of Tyga has been learned to with some respect by the model. It often will repeat the chorus of some of his songs if it gets "stuck" in a prediciton loop for example. In other cases, as shown above it pulls of a legitimate rhyme scheme covering a topic that Tyga would as well. 
+
 #### Sreamlit App
-poieuporqwe
+I already have the code written up for the first iteration of a webapp that will allow users to input their own text to have the model generate from. At the moment I am waiting on an invitation to share it via the Streamlit platform. If this becomes a dead-end, I will investigate other routes.
+
 #### Future Work
-asdfasdfd
+I would like to expand this model's training inputs to include other rappers so that I could create some "lunchroom special" version of their styles and/or lyrics. This would potentially move into allowing a user to predict like a rapper of their choosing or all of them.
+
+### Questions?
+Feel free to reach out to me on [Twitter](https://twitter.com/dariuslfuller) or [LinkedIn](https://www.linkedin.com/in/darius-fuller/). Thank you!
