@@ -54,25 +54,90 @@ Taking a similar approach to the individual songs, but over the entire set of so
 * At a rate of ~3.5%, "don't" is his favorite contraction to use
 * The *B-word* is his favorite curse word, with a usage rate of ~2.9%
 
-Top 5 words by frequency:
-1. "I" -- ~10.2%
-2. "the" -- ~10.2%
-3. "a" -- ~7.6%
-4. "you" -- ~7.0%
-5. "it" -- ~6.7%
+<img src="./Images/Got_Raps_64_1_edited.png" alt="All songs word use rate" style="height: 80%; width:80%;"/>
 
-By frequency, I am not able to tell much about the topic Tyga tends to discuss, just how he goes about it.
+Top 5 words by frequency:
+1. "I" ---> ~10.2%
+2. "the" ---> ~10.2%
+3. "a" ---> ~7.6%
+4. "you" ---> ~7.0%
+5. "it" ---> ~6.7%
+
+By frequency, I am not able to tell much about the topics Tyga to discusses, just how he tends goes about it.
+
 #### N-Grams
-qerqwetwe
+Hoping to find out more about the phrases Tyga uses rather than single words, I ran a quick check on the frequency of both bigrams and trigrams over the entire dataset.
+
+Top 5 Bigrams:
+* ("in", "the") ---> ~0.40%
+* ("make", "it") ---> ~0.31%
+* ("i", "dont") ---> ~0.30%
+* ("in", "my") ---> ~0.24%
+* ("like", "a") ---> ~0.24%
+
+Top 5 Trigrams:
+* ('make', 'it', 'rain') ---> ~0.14%
+* ('stop', 'stop', 'stop') ---> ~0.07%
+* ('throw', 'it', 'up') ---> ~0.07%
+* ('im', 'the', 's##t') ---> ~0.07%
+* ('it', 'rain', 'trick') ---> ~0.07%
+
+From the top bigrams we see how he tends to structure his wordplay using "like a" to create similes. This leads me to belive that "i dont", "in the", and "in my" are likely candidates to start off each idea, ending with "like a" to finish it off. EX: "*i dont* dance *in the* club *like a*.." 
+
+The top trigrams did not reveal much more about Tyga's lyrical tendencies. They refer to song titles or the choruses within them, which may indicate how he uses short phrases for these components. Overall, there is not a clear "tell" with respect to trigrams of a Tyga song since the highest frequency sits so low.
+
 #### Stopwords Out
-aqeiruwq
+Building out my analysis, I wanted to remove the [stopwords](https://en.wikipedia.org/wiki/Stop_word) from the lyrics and see what the remaining information can tell me about the rapper.
+
+<img src="./Images/Got_Raps_73_0_edited.png" alt="All songs word use rate without stopwords" style="height: 80%; width:80%;"/>
+
+Simply put, he cusses often and uses words in reference to other men/women, money and love.
+
 #### Statistics
-qpoeiru
+In addition to my analysis on the lyrics themselves, I wanted to see what kind of information can be found by treating each song as a document itself. For code brevity, I created the custom function `song_stat_df_generator()` that will take in a dictionary of lyrics and output a Pandas' DataFrame with each song's:
+* Title
+* Total words used
+* Total unique words used
+* Unique to total word ratio
+* Averages for the whole dataset in the above areas
+
+The averages are:
+
+| Metric    | Value |
+|:---------:|:-----:|
+| Total     | 408.5 |
+| Unique    | 181.3 |
+| U/T Ratio | 0.47  |
+
+Here is the distribution of songs based upon the unique to total ratio, which interestingly has a slight skew to the left.
+
+<img src="./Images/Got_Raps_99_0.png" alt="All songs word use rate without stopwords" style="height: 80%; width:80%;"/>
 
 ## Creating the RNN
-qoeiuroqiuerq
+Keeping with the inpsiration for the project, I followed the guidelines laid out [here](https://www.tensorflow.org/tutorials/text/text_generation) by Tensorflow when prepping my data. I did do a few things differently to match the amount of data and the hardware I was using at the time. In short, I:
+* Created lookup tables for indices and their corresponding character values
+* Converted the lyrics into integer sequences using the lookup tables
+* Created target/input batches using the sequences for training
+
 #### Architecture
-rtoieurert
+Here is the final architecture I used for my model:
+
+    Model: "sequential"
+    _________________________________________________________________
+    Layer (type)                 Output Shape              Param #   
+    =================================================================
+    embedding (Embedding)        (64, None, 256)           10496     
+    _________________________________________________________________
+    gru (GRU)                    (64, None, 1024)          3938304   
+    _________________________________________________________________
+    dense (Dense)                (64, None, 41)            42025     
+    =================================================================
+    Total params: 3,990,825
+    Trainable params: 3,990,825
+    Non-trainable params: 0
+    _________________________________________________________________
+    
+
 #### Training Strategy
 poiuoie
 
