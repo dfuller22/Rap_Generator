@@ -13,7 +13,7 @@ To add a twist, I wanted to go about my data collection in an intentionally bias
 **DISCLAIMER:** *The Jupyter Notebook in this repository contains the explicit lyrics from the songs used to train this network. If this is an issue, please continue here. I apologize for the inconvenience.*
 
 ## Results
-Since this project was more about the implementation of a RNN to generate text, I felt it best to use [Streamlit.io](streamlit.io) as a way to share my results in an interactive way. The GitHub repository for the app can be found [here](https://github.com/dfuller22/Rap_Generator_Streamlit). Once connected to the app, one will be able to input their own text and have my model attempt to continue as if the input text is part of a rap. [Try it out!](https://share.streamlit.io/dfuller22/rap_generator_streamlit/main/rap_gen.py)
+Since this project was more about the implementation of a RNN to generate text, I felt it best to use [Streamlit.io](https://www.streamlit.io/) as a way to share my results in an interactive way. The GitHub repository for the app can be found [here](https://github.com/dfuller22/Rap_Generator_Streamlit). Once connected to the app, one will be able to input their own text and have my model attempt to continue as if the input text is part of a rap. [Try it out!](https://share.streamlit.io/dfuller22/rap_generator_streamlit/main/rap_gen.py)
 
 ## Packages
 * requests==2.23.0
