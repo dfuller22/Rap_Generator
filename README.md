@@ -50,7 +50,7 @@ Roughly speaking my process for the EDA was as follows:
 #### Rack City
 I decided to investigate some of the songs individually to see if there could be anything of note to find. When looking at the frequency distribution for the song [Rack City](https://en.wikipedia.org/wiki/Rack_City), I was able to quantify how repetitive it was in a sense. The frequency distribution created from the lyrics showed that the three words primarily used within the chorus took up of ~35% of all words used despite representing ~2% of the total vocabulary in the song.
 
-<img src="./Images/Got_Raps_56_0_edited.png" alt="Rack City word use rate" style="height: 80%; width:80%;"/>
+<img src="/Images/Got_Raps_56_0_edited.png" alt="Rack City word use rate" style="height: 80%; width:80%;"/>
 
 #### All Solo Songs
 Taking a similar approach to the individual songs, but over the entire set of solo songs, I was about to find out a few things about Tyga's tendencies.
