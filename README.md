@@ -152,7 +152,7 @@ Pre-Training prediction:
 "or fake b"
 * Predictions: 
 "1jzptc 7to"
-* Ouput: 
+* Output: 
 "or fake b1jzptc 7to"
 
 Post-Training prediction:
