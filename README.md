@@ -170,11 +170,11 @@ print(generate_text(model_gen_fts, char_v_idx_fts, idx_v_char_fts, start_string=
 #### Censorship
 Given the nature of the lyrics that the model trained upon, it is no surprise that is also generates curse words. Therefore, in order for me to feel comfortable deploying this model, I decided to make a custom class that will censor out words after they have been predicted. This will allow for the model to still learn from the context and meaning of the words without having to be vulgar itself.
 
-## Results
+## Summary
 Overall, I am satisfied with the results. I was able to create a model that can mimick a rapper in a relative sense. Having ran numerous generations using this model, it is clear to me that the style of Tyga has been learned to with some respect by the model. It often will repeat the chorus of some of his songs if it gets "stuck" in a prediciton loop for example. In other cases, as shown above it pulls of a legitimate rhyme scheme covering a topic that Tyga would as well. 
 
 #### Sreamlit App
-I already have the code written up for the first iteration of a webapp that will allow users to input their own text to have the model generate from. At the moment I am waiting on an invitation to share it via the Streamlit platform. If this becomes a dead-end, I will investigate other routes.
+I already have the code written up for the first iteration of a webapp that will allow users to input their own text to have the model generate from. At the moment I am waiting on an invitation to share it via the Streamlit platform. If this becomes a dead-end, I will investigate other routes. [Update: The webapp is now deployed! [Link](https://share.streamlit.io/dfuller22/rap_generator_streamlit/main/rap_gen.py)]
 
 #### Future Work
 I would like to expand this model's training inputs to include other rappers so that I could create some "lunchroom special" version of their styles and/or lyrics. This would potentially move into allowing a user to predict like a rapper of their choosing or all of them.
