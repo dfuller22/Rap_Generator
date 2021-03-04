@@ -128,7 +128,7 @@ dmypy.json
 notes.txt
 
 # Images
-Images/
+Images__/
 
 # Training Checkpoints
 training_checkpoints/
